@@ -1,0 +1,180 @@
+---
+title: "ml proj"
+author: "Paul"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+#statements table
+df <- read.csv('statement(SU_ORNEKLEM_KK_EKSTRE_BIL).csv')
+
+#creating totals, converting to Turkish Lira (conversions were made on 5/3/22, exchange rate may have changed since then)
+df$total <- df$currency_TL + (14.88*df$currency_USD) + (15.63*df$currency_EUR)
+#df
+
+#Calculating max and mean statements
+df2 <- aggregate(df$total, by=list(df$customer_id), FUN=mean)
+df3 <- aggregate(df$total, by=list(df$customer_id), FUN=max)
+
+#renaming columns
+df2 <- rename(df2, statement_mean = x)
+df2 <- rename(df2, customer_id = Group.1)
+df3 <- rename(df3, statement_max = x)
+df3 <- rename(df3, customer_id = Group.1)
+
+#joining statement mean and max
+statement_df <- left_join(df2, df3, by=c("customer_id"="customer_id"))
+
+statement_df
+```
+
+
+
+```{r}
+#Branch demo table
+df <- read.csv("branch_demo(SU_ORNEKLEM_SUBE_ISL_ZIY).csv")
+
+df2 <- aggregate(df$num_daily_trans, by=list(df$customer_id), FUN=mean)
+df2 <- rename(df2, avg_daily_transactions = x)
+df2 <- rename(df2, customer_id = Group.1)
+
+regression_df <- left_join(statement_df, df2, by=c("customer_id"="customer_id"))
+
+regression_df
+```
+
+
+```{r}
+#transactions table1 data
+df <- read.csv("transaction(SU_ORNEKLEM_KK_EKSTRE_ODM_BIL).csv")
+#unique(df$currency)
+
+#converting pay amount to Lira
+df[df$currency=="EURO", ]$pay_amount <- df[df$currency=="EURO", ]$pay_amount*15.63
+df[df$currency=="AMERIKAN_DOLARI", ]$pay_amount <- df[df$currency=="AMERIKAN_DOLARI", ]$pay_amount*14.88
+
+df2 <- aggregate(df$pay_amount, by=list(df$customer_id), FUN=mean)
+df3 <- aggregate(df$pay_amount, by=list(df$customer_id), FUN=max)
+
+df2 <- rename(df2, transaction1_mean = x)
+df2 <- rename(df2, customer_id = Group.1)
+df3 <- rename(df3, transaction1_max = x)
+df3 <- rename(df3, customer_id = Group.1)
+
+transaction1_df <- left_join(df2, df3, by=c("customer_id"="customer_id"))
+
+regression_df <- left_join(statement_df, transaction1_df, by=c("customer_id"="customer_id"))
+
+regression_df
+```
+
+```{r}
+#Transactions table2 data
+df <- read.csv("transactions(SU_ORNEKLEM_KK_HAR_BILGI).csv")
+
+#only using shopping transactions, not cash advance (NA in Trans_Type column)
+df <- df %>% drop_na(Trans_Type)
+
+#converting currency to Lira
+#unique(df$Trans_Currency)
+df[df$Trans_Currency=="EURO", ]$Trans_Amt <- df[df$Trans_Currency=="EURO", ]$Trans_Amt*15.63
+df[df$Trans_Currency=="AMERIKAN_DOLARI", ]$Trans_Amt <- df[df$Trans_Currency=="AMERIKAN_DOLARI", ]$Trans_Amt*14.88
+
+
+df2 <- aggregate(df$Trans_Amt, by=list(df$Cust_ID), FUN=mean)
+df3 <- aggregate(df$Trans_Amt, by=list(df$Cust_ID), FUN=max)
+df4 <- aggregate(df$Online_Trans, by=list(df$Cust_ID), FUN=mean)
+
+df2 <- rename(df2, transaction2_mean = x)
+df2 <- rename(df2, customer_id = Group.1)
+df3 <- rename(df3, transaction2_max = x)
+df3 <- rename(df3, customer_id = Group.1)
+df4 <- rename(df4, online_trans_percent = x)
+df4 <- rename(df4, customer_id = Group.1)
+
+#popular spending categories
+sort(table(df$Category), decreasing=TRUE)
+
+#transactions by category
+df_food <- df[df$Category=="GIDA", ]
+df_food2 <- aggregate(df_food$Trans_Amt, by=list(df_food$Cust_ID), FUN=mean)
+df_food3 <- aggregate(df_food$Trans_Amt, by=list(df_food$Cust_ID), FUN=max)
+
+df_health <- df[df$Category=="SAÄžLIK", ]
+df_health2 <- aggregate(df_health$Trans_Amt, by=list(df_health$Cust_ID), FUN=mean)
+df_health3 <- aggregate(df_health$Trans_Amt, by=list(df_health$Cust_ID), FUN=max)
+
+df_gas <- df[df$Category=="AKARYAKIT", ]
+df_gas2 <- aggregate(df_gas$Trans_Amt, by=list(df_gas$Cust_ID), FUN=mean)
+df_gas3 <- aggregate(df_gas$Trans_Amt, by=list(df_gas$Cust_ID), FUN=max)
+
+
+df_food2 <- rename(df_food2, transaction_food_mean = x)
+df_food2 <- rename(df_food2, customer_id = Group.1)
+df_food3 <- rename(df_food3, transaction_food_max = x)
+df_food3 <- rename(df_food3, customer_id = Group.1)
+df_health2 <- rename(df_health2, transaction_health_mean = x)
+df_health2 <- rename(df_health2, customer_id = Group.1)
+df_health3 <- rename(df_health3, transaction_health_max = x)
+df_health3 <- rename(df_health3, customer_id = Group.1)
+df_gas2 <- rename(df_gas2, transaction_gas_mean = x)
+df_gas2 <- rename(df_gas2, customer_id = Group.1)
+df_gas3 <- rename(df_gas3, transaction_gas_max = x)
+df_gas3 <- rename(df_gas3, customer_id = Group.1)
+
+
+regression_df <- left_join(regression_df, df2, by=c("customer_id"="customer_id"))
+regression_df <- left_join(regression_df, df3, by=c("customer_id"="customer_id"))
+regression_df <- left_join(regression_df, df4, by=c("customer_id"="customer_id"))
+regression_df <- left_join(regression_df, df_food2, by=c("customer_id"="customer_id"))
+regression_df <- left_join(regression_df, df_food3, by=c("customer_id"="customer_id"))
+regression_df <- left_join(regression_df, df_health2, by=c("customer_id"="customer_id"))
+regression_df <- left_join(regression_df, df_health3, by=c("customer_id"="customer_id"))
+regression_df <- left_join(regression_df, df_gas2, by=c("customer_id"="customer_id"))
+regression_df <- left_join(regression_df, df_gas3, by=c("customer_id"="customer_id"))
+
+
+regression_df
+```
+
+
+```{r}
+#demographics table
+df <- read.csv("demographics(SU_MUSTERI_KITLE_ORNEKLEM_100K).csv")
+regression_df
+final_df <- left_join(regression_df, df, by=c("customer_id"="Cust_ID"))
+
+final_df <- subset(final_df, select = -c(X,Branch_ID,Branch_X,Branch_Y,Home_Loc_X,Home_Loc_Y,Work_Loc_X,Work_Loc_Y))
+
+final_df <- subset(final_df, select = -c(Penalty_201407,Penalty_201408,Penalty_201409,Penalty_201410,Penalty_201411,Penalty_201412,Penalty_201501,Penalty_201502,Penalty_201503,Penalty_201504,Penalty_201505,Penalty_201506))
+
+colnames(final_df)
+
+write.csv(final_df,"regression_df.csv")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
