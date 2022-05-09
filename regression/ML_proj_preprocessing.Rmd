@@ -67,7 +67,7 @@ df3 <- rename(df3, customer_id = Group.1)
 
 transaction1_df <- left_join(df2, df3, by=c("customer_id"="customer_id"))
 
-regression_df <- left_join(statement_df, transaction1_df, by=c("customer_id"="customer_id"))
+regression_df <- left_join(regression_df, transaction1_df, by=c("customer_id"="customer_id"))
 
 regression_df
 ```
@@ -148,24 +148,31 @@ df <- read.csv("demographics(SU_MUSTERI_KITLE_ORNEKLEM_100K).csv")
 regression_df
 final_df <- left_join(regression_df, df, by=c("customer_id"="Cust_ID"))
 
-final_df <- subset(final_df, select = -c(X,Branch_ID,Branch_X,Branch_Y,Home_Loc_X,Home_Loc_Y,Work_Loc_X,Work_Loc_Y))
+final_df <- subset(final_df, select = -c(X,Branch_ID,Branch_X,Branch_Y,Home_Loc_X,Home_Loc_Y,Work_Loc_X,Work_Loc_Y,Penalty_201407,Penalty_201408,Penalty_201409,Penalty_201410,Penalty_201411,Penalty_201412,Penalty_201501,Penalty_201502,Penalty_201503,Penalty_201504,Penalty_201505))
 
-final_df <- subset(final_df, select = -c(Penalty_201407,Penalty_201408,Penalty_201409,Penalty_201410,Penalty_201411,Penalty_201412,Penalty_201501,Penalty_201502,Penalty_201503,Penalty_201504,Penalty_201505,Penalty_201506))
 
-colnames(final_df)
+#Recoding gender as 0 = female, 1 = male
+final_df[final_df$Gender=="K", ]$Gender <- 0
+final_df[final_df$Gender=="E", ]$Gender <- 1
 
+
+
+```
+
+```{r}
+final_df
+```
+
+
+```{r}
 write.csv(final_df,"regression_df.csv")
 ```
 
 
-
-
-
-
-
-
-
-
+```{r}
+df <- read.csv("regression_df.csv")
+df
+```
 
 
 
