@@ -1,0 +1,8 @@
+For fully commented code, see /Classification/Work/Work_class_fulldata-sss.ipynb and Work_class_state_trans_fulldata_health-sss.ipynb.
+
+The first file shows the process for processing, training, and testing the base data set and the second file shows the same for the base + health mean and max transactions data set.
+All other files are variations on these files.
+
+All models were tuned using fractional data sets and tested using full data sets.  The files used for testing have names that contain 'fulldata'.  The files that used stratified shuffle split end in 'sss'.
+
+Only education level files had all data sets tested using stratified shuffle split and split train test to compare performances.  Work models did not seem to improve with stratified shuffle split after the first two comparisons so further comparisons were abandoned.
